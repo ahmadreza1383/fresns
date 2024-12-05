@@ -122,21 +122,27 @@ class AppHelper
         $disableFunctions = explode(',', ini_get('disable_functions'));
 
         if (function_exists('proc_open') && ! in_array('proc_open', $disableFunctions)) {
-            $composerInfo = CommandUtility::getComposerProcess(['-V'])->run()->getOutput();
-            $toArray = explode(' ', $composerInfo);
-
-            $version = null;
-            foreach ($toArray as $item) {
-                if (substr_count($item, '.') == 2) {
-                    $version = $item;
-                    break;
+            try {
+                $composerInfo = CommandUtility::getComposerProcess(['-V'])->run()->getOutput();
+                $toArray = explode(' ', $composerInfo);
+                $version = null;
+                foreach ($toArray as $item) {
+                    if (substr_count($item, '.') == 2) {
+                        $version = $item;
+                        break;
+                    }
                 }
-            }
 
-            $versionInfo = [
-                'version' => $version ?? 0,
-                'versionInfo' => $composerInfo,
-            ];
+                $versionInfo = [
+                    'version' => $version ?? 0,
+                    'versionInfo' => $composerInfo,
+                ];
+            } catch (\Throwable $e) {
+                $versionInfo = [
+                    'version' => 0,
+                    'versionInfo' => "Could not find composer version information",
+                ];
+            }
         }
 
         return $versionInfo;
